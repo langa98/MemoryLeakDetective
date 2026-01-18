@@ -9,18 +9,19 @@ public:
     static void Enable();
 };
 
-// Placement new operators MUST be declared exactly like this
+// Placement new operators 
 void* operator new(std::size_t size, const char* file, int line);
 void* operator new[](std::size_t size, const char* file, int line);
 
-// Regular new/delete operators
+// Regular new or delete operators
 void* operator new[](std::size_t size);
 void operator delete(void* ptr) noexcept;
 void operator delete[](void* ptr) noexcept;
 void operator delete(void* ptr, std::size_t size) noexcept;
 void operator delete[](void* ptr, std::size_t size) noexcept;
 
-// Special placement delete operators to match placement new
+//placement delete operators to match placement new
+//This was used cause the new operator give errors if declared without placements
 void operator delete(void* ptr, const char* file, int line) noexcept;
 void operator delete[](void* ptr, const char* file, int line) noexcept;
 

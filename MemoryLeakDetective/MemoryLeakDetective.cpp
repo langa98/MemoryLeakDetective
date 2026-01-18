@@ -16,7 +16,7 @@ int main() {
     int* p2 = TRACK_NEW int[20];
 
     //delete p1;
-    delete[] p2;  // Note: MUST use delete[] for arrays!
+    delete[] p2;  //  use delete[] for arrays!
 
     MemoryTracker::ReportLeaks();
 

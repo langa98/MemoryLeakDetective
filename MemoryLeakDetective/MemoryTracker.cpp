@@ -47,7 +47,8 @@ void MemoryTracker::Add(void* ptr, std::size_t size, const char* file, int line)
         return;
     }
 
-    // Reserve space to avoid allocations during tracking
+    /* Reserve space to avoid allocations during tracking
+    as we know The STL containers can allocate its own memory*/
     if (allocations.empty()) {
         allocations.reserve(1024);
     }
@@ -101,7 +102,7 @@ void MemoryTracker::ReportLeaks() {
     }
 }
 
-// Placement new operators (MUST have these exact signatures)
+// Placement new operators
 void* operator new(std::size_t size, const char* file, int line) {
 
     void* ptr = std::malloc(size);
@@ -174,7 +175,7 @@ void operator delete[](void* ptr, std::size_t size) noexcept {
     std::free(ptr);
 }
 
-// Placement delete operators (required to match placement new)
+// Placement delete operators 
 void operator delete(void* ptr, const char* file, int line) noexcept {
 
     if (!ptr) return;
