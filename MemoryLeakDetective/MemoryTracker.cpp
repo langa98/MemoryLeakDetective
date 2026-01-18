@@ -1,99 +1,190 @@
 #include "MemoryTracker.h"
-#include <unordered_map>
 #include <iostream>
 #include <cstdlib>
 #include <new>
+#include <vector>
 
 namespace {
-    std::unordered_map<void*, std::size_t> allocations;  
-    bool trackingEnabled = false;                        
-    bool reentryGuard = false;// prevent recursion in operator new
-
-    // RAII guard ensures reentryGuard is reset automatically
-    struct TrackingGuard {
-        bool& guardRef;
-        TrackingGuard(bool& r) : guardRef(r) {
-            guardRef = true;
-        }
-
-        ~TrackingGuard() {
-            guardRef = false;
-        }
+    struct AllocationInfo {
+        std::size_t size;
+        const char* file;
+        int line;
     };
+
+    struct AllocationRecord {
+        void* ptr;
+        AllocationInfo info;
+    };
+
+
+    std::vector<AllocationRecord> allocations;
+
+    bool trackingEnabled = false;
+
+    // search function By index
+    int FindAllocationIndex(void* ptr) {
+
+        for (int i = 0; i < static_cast<int>(allocations.size()); i++) {
+
+            if (allocations[i].ptr == ptr) {
+
+                return i;
+            }
+        }
+        return -1;
+    }
 }
+//Closing of The Anonymous Namepsace//
+
 
 void MemoryTracker::Enable() {
     trackingEnabled = true;
 }
 
-void MemoryTracker::Add(void* ptr, std::size_t size) {
+void MemoryTracker::Add(void* ptr, std::size_t size, const char* file, int line) {
 
-    if (!trackingEnabled || reentryGuard) {
+    if (!trackingEnabled) {
         return;
     }
 
-    TrackingGuard guard(reentryGuard);
+    // Reserve space to avoid allocations during tracking
+    if (allocations.empty()) {
+        allocations.reserve(1024);
+    }
 
-    allocations[ptr] = size;
+    AllocationRecord record;
+    record.ptr = ptr;
+    record.info.size = size;
+    record.info.file = file;
+    record.info.line = line;
+    
+    allocations.push_back(record);
 }
 
 void MemoryTracker::Remove(void* ptr) {
-
-    if (!trackingEnabled || reentryGuard) {
+    if (!trackingEnabled) {
         return;
     }
 
-    TrackingGuard guard(reentryGuard);
+    int index = FindAllocationIndex(ptr);
 
-    allocations.erase(ptr);
+    if (index >= 0) {
+
+        // Move last element to current position
+        allocations[index] = allocations.back();
+        allocations.pop_back();
+
+    }
 }
 
 void MemoryTracker::ReportLeaks() {
-
-    if (allocations.empty()) {
-        std::cout << "The is no leaks in the System!\n" << std::endl;
+    if (!trackingEnabled) {
+        std::cout << "Memory tracking is disabled.\n";
         return;
-
     }
-    std::cout << "Memory leaks detected:\n";
-    for (const auto& entry : allocations) {
-        std::cout << "Leaked " << entry.second
-            << " bytes at address " << entry.first << '\n';
-    }
-
-
-}
-
-/*void MemoryTracker::ReportLeaks() {
 
     if (allocations.empty()) {
-
         std::cout << "No memory leaks detected.\n";
-
         return;
     }
 
-    std::cout << "Memory leaks detected:\n";
+    std::cout << "Memory leaks detected (" << allocations.size() << "):\n";
 
-    for (const auto& [ptr, size] : allocations) {
+    for (size_t i = 0; i < allocations.size(); i++) {
 
-        std::cout << " Leaked " << size
-            << " bytes at address " << ptr << '\n';
+        const AllocationRecord& record = allocations[i];
+
+        std::cout << "  Leaked " << record.info.size
+            << " bytes at " << record.ptr
+            << " (" << record.info.file
+            << ":" << record.info.line << ")\n";
     }
 }
-*/
 
-void* operator new(std::size_t size) {
+// Placement new operators (MUST have these exact signatures)
+void* operator new(std::size_t size, const char* file, int line) {
 
     void* ptr = std::malloc(size);
 
     if (!ptr) throw std::bad_alloc();
 
-    MemoryTracker::Add(ptr, size);
+    MemoryTracker::Add(ptr, size, file, line);
+
     return ptr;
 }
 
+void* operator new[](std::size_t size, const char* file, int line) {
+
+    void* ptr = std::malloc(size);
+
+    if (!ptr) throw std::bad_alloc();
+
+    MemoryTracker::Add(ptr, size, file, line);
+
+    return ptr;
+}
+
+
+void* operator new[](std::size_t size) {
+
+    void* ptr = std::malloc(size);
+
+    if (!ptr) throw std::bad_alloc();
+
+    MemoryTracker::Add(ptr, size, "unknown", 0);
+
+    return ptr;
+}
+
+// Regular delete operators
 void operator delete(void* ptr) noexcept {
+
+    if (!ptr) return;
+
+    MemoryTracker::Remove(ptr);
+
+    std::free(ptr);
+}
+
+void operator delete[](void* ptr) noexcept {
+
+    if (!ptr) return;
+
+    MemoryTracker::Remove(ptr);
+
+    std::free(ptr);
+}
+
+// Sized delete operators 
+void operator delete(void* ptr, std::size_t size) noexcept {
+
+    if (!ptr) return;
+
+    MemoryTracker::Remove(ptr);
+
+    std::free(ptr);
+}
+
+void operator delete[](void* ptr, std::size_t size) noexcept {
+
+    if (!ptr) return;
+
+    MemoryTracker::Remove(ptr);
+
+    std::free(ptr);
+}
+
+// Placement delete operators (required to match placement new)
+void operator delete(void* ptr, const char* file, int line) noexcept {
+
+    if (!ptr) return;
+
+    MemoryTracker::Remove(ptr);
+
+    std::free(ptr);
+}
+
+void operator delete[](void* ptr, const char* file, int line) noexcept {
 
     if (!ptr) return;
 
