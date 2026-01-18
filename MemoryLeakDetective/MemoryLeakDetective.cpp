@@ -4,14 +4,14 @@
 int main() {
     MemoryTracker::Enable();
 
-    // Correct usage:
+    // Test Decalaration with direct macros
     int* single = new(__FILE__, __LINE__) int(42);
     int* array = new(__FILE__, __LINE__) int[10];
 
    // delete single;          // Use delete for single objects
     delete[] array;         // Use delete[] for arrays
     
-    // Or use the macros:
+    // Then This is testing the macros
     int* p1 = TRACK_NEW int(100);
     int* p2 = TRACK_NEW int[20];
 
