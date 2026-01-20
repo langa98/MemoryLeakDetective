@@ -60,8 +60,8 @@ Tracking is **disabled by default** to avoid startup issues.
 
 ```cpp
 MemoryTracker::Enable();
-
-2️⃣ Allocate memory
+```
+### 2️⃣ Allocate memory
 ✅ With file & line tracking (recommended)
 #define TRACK_NEW new(__FILE__, __LINE__)
 
@@ -87,7 +87,7 @@ line: 0
 
 This is a language limitation, not a bug.
 
-3️⃣ Deallocate correctly
+### 3️⃣ Deallocate correctly
 delete p;
 delete[] arr;
 
@@ -98,7 +98,7 @@ new → delete
 
 new[] → delete[]
 
-4️⃣ Report leaks
+### 4️⃣ Report leaks
 MemoryTracker::ReportLeaks();
 
 🧪 Example Output
