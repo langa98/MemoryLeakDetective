@@ -85,7 +85,7 @@ file: unknown
 line: 0
 
 
-This is a language limitation, not a bug.
+# This is a language limitation, not a bug.
 
 ### 3️⃣ Deallocate correctly
 delete p;
@@ -130,10 +130,10 @@ struct TestStruct {
     int a;
     double b;
 };
+```
 
-
-Layout:
-
+## Layout:
+```
 int → 4 bytes
 
 padding → 4 bytes
@@ -142,8 +142,8 @@ double → 8 bytes
 Total: 16 bytes
 
 All reported sizes are ABI-correct and verifiable.
-
-🔒 Safety Measures
+```
+### 🔒 Safety Measures
 Re-entrancy Protection
 
 The tracker avoids infinite recursion by using a guard when intercepting new.
@@ -166,21 +166,22 @@ Reported as unknown:0
 
 This is expected and standard-compliant.
 
-⚠️ Known Limitations (By Design)
+### ⚠️ Known Limitations (By Design)
+
 File & Line Information
 
 C++ does not provide file/line metadata automatically for new.
 
 Therefore:
-
+```
 Only allocations using TRACK_NEW record source location
 
 Plain new shows unknown:0
 
 This limitation applies to all C++ memory debuggers, including professional ones.
-
-Not a Replacement for Valgrind / ASan
-
+```
+## Not a Replacement for Valgrind / ASan
+```
 This tool does not:
 
 detect use-after-free
@@ -192,16 +193,16 @@ detect double deletes
 inspect stack memory
 
 It focuses only on leaked heap allocations.
-
-✅ What This Tool Does Well
-
+```
+## What This Tool Does Well
+```
 ✔ Detects leaked heap memory
 ✔ Correctly tracks arrays and objects
 ✔ Safe global new interception
 ✔ Clear, readable output
 ✔ Educational and standards-compliant
-
-🧠 Design Goals
+```
+## 🧠 Design Goals
 
 Minimal dependencies
 
@@ -213,8 +214,8 @@ No undefined behavior
 
 Easy to extend
 
-🔮 Possible Extensions
-
+## 🔮 Possible Extensions
+```
 Detect delete vs delete[] mismatches
 
 Group leaks by file
@@ -226,8 +227,8 @@ Track total leaked bytes
 Export report to file
 
 Thread-safety support
-
-📜 License
+```
+### 📜 License
 
 This project is provided for educational and personal use.
 No warranty is expressed or implied.
