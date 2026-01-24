@@ -44,9 +44,13 @@ If an allocation is **never deleted**, it appears in the final leak report.
 
 MemoryLeakDetective/
 │
+
 ├── MemoryTracker.h
+
 ├── MemoryTracker.cpp
+
 ├── main.cpp
+
 └── README.md
 
 
